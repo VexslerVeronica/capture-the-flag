@@ -1,5 +1,7 @@
 # Getting Started with Create React App
 
+Hello! Thank you for viewing my Capture the Flag code! <3
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts

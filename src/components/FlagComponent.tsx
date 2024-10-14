@@ -5,6 +5,7 @@ import Typewriter from './TypeWriter';
 const FlagComponent = () => {
   const [loading, setLoading] = useState(true);
   const [flag, setFlag] = useState('');
+  const [error, setError] = useState('');
   const api = process.env.REACT_APP_CAPTURE_THE_FLAG_API_URL as string;
 
   useEffect(() => {
@@ -13,15 +14,19 @@ const FlagComponent = () => {
         const response = await fetch(api).then((response) => response.text());
         setFlag(response);
         setLoading(false);
+        setError('');
       }
       catch (error) {
-        console.error("Error fetching response! ", error);
+        setError(`Error fetching response! + ${error}`);
       }
     }
     fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); 
 
+  if (error.length) {
+    return <div>{error}</div>;
+  }
 
   return (
     <div>

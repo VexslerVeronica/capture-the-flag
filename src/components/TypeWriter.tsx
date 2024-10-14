@@ -12,7 +12,9 @@ const Typewriter = (props: TypewriterProps) => {
         let index = -1;
         const interval = setInterval(() => {
             index++;
-            if (index === text.length) {clearInterval(interval); return;} ;
+            if (index === text.length) {
+                clearInterval(interval); return;
+            };
             setDisplayedText((prev) => prev + text[index]);
         }, 500);
 

@@ -14,12 +14,19 @@ jest.mock('./TypeWriter', () => {
 
 describe('FlagComponent', () => {
   beforeEach(() => {
-    (global.fetch as jest.Mock).mockClear();
+    jest.resetAllMocks();
   });
 
-  it('renders loading state initially', () => {
+  it('renders loading state initially', async () => {
+    const mockFlag = 'Test Flag';
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      text: jest.fn().mockResolvedValueOnce(mockFlag),
+    });
+    
     render(<FlagComponent />);
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    })
   });
 
   it('fetches flag data and renders Typewriter component', async () => {
@@ -30,27 +37,41 @@ describe('FlagComponent', () => {
 
     render(<FlagComponent />);
 
-    // Initially shows loading
     expect(screen.getByText('Loading...')).toBeInTheDocument();
 
-    // Wait for the flag to be fetched and rendered
     await waitFor(() => {
       expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-    }).then(() => expect(screen.getByTestId('mock-typewriter')).toHaveTextContent(mockFlag));
-
-    // Verify that fetch was called with the correct URL
-    expect(global.fetch).toHaveBeenCalledWith(
-      'https://wgg522pwivhvi5gqsn675gth3q0otdja.lambda-url.us-east-1.on.aws/656c61'
+    }).then(() => 
+      expect(screen.getByTestId('mock-typewriter')).toHaveTextContent(mockFlag)
     );
+
+    expect(global.fetch).toHaveBeenCalledWith(process.env.REACT_APP_CAPTURE_THE_FLAG_API_URL);
   });
 
-  it('handles fetch error gracefully', async () => {
-    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Fetch failed'));
+  it('handles fetch error and displays error message', async () => {
+    const errorMessage = 'Fetch failed';
+    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error(errorMessage));
 
     render(<FlagComponent />);
 
     await waitFor(() => {
-      expect(screen.getByText('Loading...')).toBeInTheDocument();
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+    }).then(() => {
+      expect(screen.getByText(`Error fetching response! + Error: Fetch failed`)).toBeInTheDocument();
+    });
+  });
+
+  it('uses the correct API URL from environment variable', async () => {
+    process.env.REACT_APP_CAPTURE_THE_FLAG_API_URL = 'https://custom-api-url.com';
+    
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
+      text: jest.fn().mockResolvedValueOnce('Flag'),
+    });
+
+    render(<FlagComponent />);
+
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('https://custom-api-url.com');
     });
   });
 });
